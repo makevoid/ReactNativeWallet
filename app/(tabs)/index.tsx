@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, ScrollView, Alert, TextInput, Modal, ActivityIndicator, StyleSheet, ImageBackground } from "react-native";
 import { useWallet } from "@/contexts/WalletContext";
-import { GlassCard, Button, Title, Input } from '@/components/ui';
+import { GlassCard, Button, Title, Input, IconButton, SettingsModal } from '@/components/ui';
 import * as Clipboard from 'expo-clipboard';
 
 export default function HomeScreen() {
@@ -17,6 +17,7 @@ export default function HomeScreen() {
   } = useWallet();
 
   const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [privateKeyInput, setPrivateKeyInput] = useState('');
 
   const handleExportPrivateKey = async () => {
@@ -126,9 +127,18 @@ export default function HomeScreen() {
     >
       <View style={styles.overlay} />
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <Title level={1} variant="glass" style={styles.mainTitle}>
-          ◈ Your Wallet
-        </Title>
+        <View style={styles.headerContainer}>
+          <Title level={1} variant="glass" style={styles.mainTitle}>
+            ◈ Your Wallet
+          </Title>
+          <IconButton
+            icon="⬢"
+            variant="glass"
+            size="small"
+            onPress={() => setShowSettingsModal(true)}
+            style={styles.settingsButton}
+          />
+        </View>
 
         {wallet && (
           <GlassCard style={styles.balanceCard}>
@@ -150,28 +160,6 @@ export default function HomeScreen() {
           </GlassCard>
         )}
 
-        <Title level={3} variant="glass" style={styles.sectionTitle}>
-          ⚙ Settings
-        </Title>
-
-        <GlassCard style={styles.settingsCard}>
-          <View style={styles.buttonSpacing}>
-            <Button
-              title="↗ Export Private Key"
-              variant="glass"
-              size="medium"
-              fullWidth
-              onPress={handleExportPrivateKey}
-            />
-          </View>
-          <Button
-            title="↻ Restore Wallet"
-            variant="glass"
-            size="medium"
-            fullWidth
-            onPress={() => setShowRestoreModal(true)}
-          />
-        </GlassCard>
 
         {error && (
           <GlassCard className="bg-red-500/20 border-red-400/30">
@@ -179,6 +167,16 @@ export default function HomeScreen() {
           </GlassCard>
         )}
       </ScrollView>
+
+      <SettingsModal
+        visible={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        onExportPrivateKey={handleExportPrivateKey}
+        onRestoreWallet={() => {
+          setShowSettingsModal(false);
+          setShowRestoreModal(true);
+        }}
+      />
 
       <Modal
         visible={showRestoreModal}
@@ -293,10 +291,22 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 100, // Account for translucent tab bar
   },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 40,
+  },
   mainTitle: {
     color: 'white',
+    flex: 1,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 0,
+  },
+  settingsButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   balanceCard: {
     marginBottom: 40,
