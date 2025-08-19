@@ -2,6 +2,7 @@ import 'react-native-get-random-values';
 import { ethers } from 'ethers';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { RPC_ENDPOINTS } from '../config/api-keys';
 
 export interface WalletInfo {
   address: string;
@@ -15,8 +16,11 @@ class WalletService {
   private readonly KEYCHAIN_KEY = 'wallet_private_key';
 
   constructor() {
-    // Initialize provider for Ethereum mainnet
-    this.provider = new ethers.JsonRpcProvider('https://eth.llamarpc.com');
+    // Initialize provider for Polygon mainnet using Ankr RPC with API key
+    this.provider = new ethers.JsonRpcProvider(RPC_ENDPOINTS.POLYGON_MAINNET);
+    
+    // Set polling interval for better mobile performance
+    this.provider.pollingInterval = 10000; // 10 seconds
   }
 
   async initializeWallet(): Promise<WalletInfo | null> {

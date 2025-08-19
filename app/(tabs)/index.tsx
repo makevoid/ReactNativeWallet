@@ -57,7 +57,7 @@ export default function HomeScreen() {
             <View style={styles.infoRow}>
               <Text style={styles.label}>Balance:</Text>
               <Text style={styles.value}>
-                {parseFloat(wallet.balance).toFixed(4)} ETH
+                {parseFloat(wallet.balance).toFixed(4)} POL
               </Text>
             </View>
 
