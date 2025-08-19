@@ -34,18 +34,31 @@ export class StorageService extends BaseService {
     } = options;
 
     try {
-      const storeOptions: SecureStore.SecureStoreOptions = {
-        keychainService,
-      };
+      const storeOptions: SecureStore.SecureStoreOptions = {};
 
-      // Only require authentication if biometrics are available and requested
-      if (requireAuthentication && AuthenticationService.isBiometricsAvailable()) {
-        storeOptions.requireAuthentication = true;
-        storeOptions.authenticationPrompt = authenticationPrompt;
+      // For Expo Go, use simpler storage options
+      if (SecureStore.isAvailableAsync()) {
+        // Only add keychain service on device builds, not Expo Go
+        try {
+          storeOptions.keychainService = keychainService;
+        } catch (e) {
+          // Ignore keychain service errors in Expo Go
+        }
+
+        // Only require authentication if biometrics are available and requested
+        if (requireAuthentication && AuthenticationService.isBiometricsAvailable()) {
+          try {
+            storeOptions.requireAuthentication = true;
+            storeOptions.authenticationPrompt = authenticationPrompt;
+          } catch (e) {
+            // Ignore authentication requirements in Expo Go
+          }
+        }
       }
 
       await SecureStore.setItemAsync(key, value, storeOptions);
     } catch (error) {
+      console.warn('SecureStore error:', error);
       await this.handleError(
         new StorageError(`Failed to store item with key: ${key}`), 
         'Setting secure item'
@@ -66,18 +79,31 @@ export class StorageService extends BaseService {
     } = options;
 
     try {
-      const storeOptions: SecureStore.SecureStoreOptions = {
-        keychainService,
-      };
+      const storeOptions: SecureStore.SecureStoreOptions = {};
 
-      // Only require authentication if biometrics are available and requested
-      if (requireAuthentication && AuthenticationService.isBiometricsAvailable()) {
-        storeOptions.requireAuthentication = true;
-        storeOptions.authenticationPrompt = authenticationPrompt;
+      // For Expo Go, use simpler storage options
+      if (SecureStore.isAvailableAsync()) {
+        // Only add keychain service on device builds, not Expo Go
+        try {
+          storeOptions.keychainService = keychainService;
+        } catch (e) {
+          // Ignore keychain service errors in Expo Go
+        }
+
+        // Only require authentication if biometrics are available and requested
+        if (requireAuthentication && AuthenticationService.isBiometricsAvailable()) {
+          try {
+            storeOptions.requireAuthentication = true;
+            storeOptions.authenticationPrompt = authenticationPrompt;
+          } catch (e) {
+            // Ignore authentication requirements in Expo Go
+          }
+        }
       }
 
       return await SecureStore.getItemAsync(key, storeOptions);
     } catch (error) {
+      console.warn('SecureStore error:', error);
       await this.handleError(
         new StorageError(`Failed to retrieve item with key: ${key}`), 
         'Getting secure item'
