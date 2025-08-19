@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
-import { View, Text, ScrollView, StyleSheet, ImageBackground, ActivityIndicator } from "react-native";
-import { GlassCard, Title, Button } from '@/components/ui';
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, StyleSheet, ImageBackground, ActivityIndicator, TouchableOpacity } from "react-native";
+import { GlassCard, Title, Button, TransactionDetailModal } from '@/components/ui';
 import { useWallet } from "@/contexts/WalletContext";
+import { ProcessedTransaction } from "@/services/BlockchainService";
 
 export default function TransactionsScreen() {
   const { 
@@ -11,6 +12,9 @@ export default function TransactionsScreen() {
     loadTransactionHistory, 
     error 
   } = useWallet();
+
+  const [selectedTransaction, setSelectedTransaction] = useState<ProcessedTransaction | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
     if (wallet?.address) {
@@ -32,6 +36,16 @@ export default function TransactionsScreen() {
 
   const getTransactionIcon = (type: 'sent' | 'received') => {
     return type === 'sent' ? '↗' : '↘';
+  };
+
+  const handleTransactionPress = (transaction: ProcessedTransaction) => {
+    setSelectedTransaction(transaction);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowDetailModal(false);
+    setSelectedTransaction(null);
   };
 
   return (
@@ -70,39 +84,42 @@ export default function TransactionsScreen() {
         ) : (
           <View style={styles.transactionsList}>
             {transactions.map((tx, index) => (
-              <GlassCard key={tx.hash} style={styles.transactionCard}>
-                <View style={styles.transactionRow}>
-                  <Text style={styles.transactionType}>
-                    {getTransactionIcon(tx.type)} {tx.type === 'sent' ? 'Sent' : 'Received'}
-                  </Text>
-                  <Text style={styles.transactionDate}>
-                    {formatDate(tx.timestamp)}
-                  </Text>
-                </View>
-                <View style={styles.transactionRow}>
-                  <Text style={styles.transactionAddress}>
-                    {tx.type === 'sent' ? 'To: ' : 'From: '}
-                    {formatAddress(tx.type === 'sent' ? tx.to : tx.from)}
-                  </Text>
-                  <Text 
-                    style={tx.type === 'sent' ? styles.transactionAmountOut : styles.transactionAmountIn}
-                  >
-                    {tx.type === 'sent' ? '-' : '+'}
-                    {formatAmount(tx.value)} POL
-                  </Text>
-                </View>
-                <View style={styles.transactionDetails}>
-                  <Text style={styles.transactionHash}>
-                    Hash: {formatAddress(tx.hash)}
-                  </Text>
-                  <Text style={[
-                    styles.transactionStatus, 
-                    tx.status === 'success' ? styles.statusSuccess : styles.statusFailed
-                  ]}>
-                    {tx.status}
-                  </Text>
-                </View>
-              </GlassCard>
+              <TouchableOpacity key={tx.hash} onPress={() => handleTransactionPress(tx)}>
+                <GlassCard style={styles.transactionCard}>
+                  <View style={styles.transactionRow}>
+                    <Text style={styles.transactionType}>
+                      {getTransactionIcon(tx.type)} {tx.type === 'sent' ? 'Sent' : 'Received'}
+                    </Text>
+                    <Text style={styles.transactionDate}>
+                      {formatDate(tx.timestamp)}
+                    </Text>
+                  </View>
+                  <View style={styles.transactionRow}>
+                    <Text style={styles.transactionAddress}>
+                      {tx.type === 'sent' ? 'To: ' : 'From: '}
+                      {formatAddress(tx.type === 'sent' ? tx.to : tx.from)}
+                    </Text>
+                    <Text 
+                      style={tx.type === 'sent' ? styles.transactionAmountOut : styles.transactionAmountIn}
+                    >
+                      {tx.type === 'sent' ? '-' : '+'}
+                      {formatAmount(tx.value)} POL
+                    </Text>
+                  </View>
+                  <View style={styles.transactionDetails}>
+                    <Text style={styles.transactionHash}>
+                      Hash: {formatAddress(tx.hash)}
+                    </Text>
+                    <Text style={[
+                      styles.transactionStatus, 
+                      tx.status === 'success' ? styles.statusSuccess : styles.statusFailed
+                    ]}>
+                      {tx.status}
+                    </Text>
+                  </View>
+                  <Text style={styles.tapHint}>Tap for details →</Text>
+                </GlassCard>
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -121,6 +138,12 @@ export default function TransactionsScreen() {
           </GlassCard>
         )}
       </ScrollView>
+
+      <TransactionDetailModal
+        visible={showDetailModal}
+        transaction={selectedTransaction}
+        onClose={handleCloseModal}
+      />
     </ImageBackground>
   );
 }
@@ -251,5 +274,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
     marginBottom: 16,
+  },
+  tapHint: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 12,
+    textAlign: 'right',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
