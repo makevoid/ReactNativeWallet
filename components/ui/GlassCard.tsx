@@ -13,7 +13,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   style,
   ...props 
 }) => {
-  const baseClasses = 'bg-white/10 border border-white/30 rounded-3xl shadow-lg';
+  const baseClasses = 'bg-white/25 border-2 border-white/40 rounded-2xl shadow-xl';
   
   const variantClasses = {
     default: 'p-6',
@@ -24,19 +24,21 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   // Fallback styles in case NativeWind isn't working
   const fallbackStyles = StyleSheet.create({
     glass: {
-      backgroundColor: 'rgba(255, 255, 255, 0.13)',
-      borderRadius: 20,
-      borderWidth: 1,
-      borderColor: 'rgba(255, 255, 255, 0.3)',
+      backgroundColor: 'rgba(255, 255, 255, 0.25)', // Less transparent
+      borderRadius: 16, // Slightly smaller radius
+      borderWidth: 1.5, // Thicker border
+      borderColor: 'rgba(255, 255, 255, 0.4)', // More visible border
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.1,
-      shadowRadius: 32,
-      elevation: 8,
+      shadowOpacity: 0.15, // Stronger shadow
+      shadowRadius: 24,
+      elevation: 12, // Higher elevation on Android
+      // Add subtle backdrop blur effect simulation
+      backdropFilter: 'blur(20px)',
     },
-    default: { padding: 24 },
-    large: { padding: 32 },
-    small: { padding: 16 },
+    default: { padding: 20 },
+    large: { padding: 28 },
+    small: { padding: 14 },
   });
 
   return (

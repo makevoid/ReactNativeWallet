@@ -25,7 +25,7 @@ export const Button: React.FC<ButtonProps> = ({
   const variantClasses = {
     primary: 'bg-blue-600 active:bg-blue-700',
     secondary: 'bg-gray-200 active:bg-gray-300',
-    glass: 'bg-white/10 border border-white/30',
+    glass: 'bg-white/20 border-2 border-white/40',
     danger: 'bg-red-600 active:bg-red-700'
   };
 
@@ -43,9 +43,9 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const textSizeClasses = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-lg'
+    small: 'text-base',
+    medium: 'text-lg',
+    large: 'text-xl'
   };
 
   const widthClass = fullWidth ? 'w-full' : '';
@@ -66,9 +66,9 @@ export const Button: React.FC<ButtonProps> = ({
       backgroundColor: '#e5e7eb',
     },
     glass: {
-      backgroundColor: 'rgba(255, 255, 255, 0.13)',
-      borderWidth: 1,
-      borderColor: 'rgba(255, 255, 255, 0.3)',
+      backgroundColor: 'rgba(255, 255, 255, 0.20)',
+      borderWidth: 1.5,
+      borderColor: 'rgba(255, 255, 255, 0.4)',
     },
     danger: {
       backgroundColor: '#dc2626',
@@ -92,8 +92,15 @@ export const Button: React.FC<ButtonProps> = ({
       opacity: 0.5,
     },
     text: {
-      fontWeight: '600',
+      fontWeight: 'bold',
       color: 'white',
+      fontSize: 18,
+    },
+    textSmall: {
+      fontSize: 16,
+    },
+    textLarge: {
+      fontSize: 20,
     },
     textSecondary: {
       color: '#374151',
@@ -123,6 +130,8 @@ export const Button: React.FC<ButtonProps> = ({
         className={`${textVariantClasses[variant]} ${textSizeClasses[size]}`}
         style={[
           fallbackStyles.text,
+          size === 'small' && fallbackStyles.textSmall,
+          size === 'large' && fallbackStyles.textLarge,
           variant === 'secondary' && fallbackStyles.textSecondary,
         ]}
       >

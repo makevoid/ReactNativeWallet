@@ -4,8 +4,9 @@ import {
   Text,
   Alert,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
+  StyleSheet,
+  ImageBackground,
 } from "react-native";
 import { useWallet } from "@/contexts/WalletContext";
 import { GlassCard, Button, Title, Input, IconButton } from '@/components/ui';
@@ -152,41 +153,55 @@ export default function SendScreen() {
 
   if (!isAuthenticated) {
     return (
-      <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 justify-center items-center px-6">
-        <GlassCard variant="large" className="items-center">
-          <Title level={2} variant="glass" className="text-center mb-4">
-            🔐 Authentication Required
-          </Title>
-          <Text className="text-white/80 text-center">
-            Please authenticate your wallet to send transactions
-          </Text>
-        </GlassCard>
-      </View>
+      <ImageBackground
+        source={require('../../assets/images/background2.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+        <View style={styles.centered}>
+          <GlassCard variant="large">
+            <View style={styles.cardCenter}>
+              <Title level={2} variant="glass" style={styles.authTitle}>
+                ◉ Authentication Required
+              </Title>
+              <Text style={styles.authSubtitle}>
+                Please authenticate your wallet to send transactions
+              </Text>
+            </View>
+          </GlassCard>
+        </View>
+      </ImageBackground>
     );
   }
 
   return (
-    <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500">
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingTop: 60 }}>
-        <Title level={1} variant="glass" className="text-center mb-8">
-          💸 Send POL
+    <ImageBackground
+      source={require('../../assets/images/background2.png')}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay} />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <Title level={1} variant="glass" style={styles.mainTitle}>
+          ⟠ Send POL
         </Title>
 
         {wallet && (
-          <GlassCard className="mb-6">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-white/70 text-sm font-medium">Available Balance:</Text>
-              <Text className="text-white text-lg font-bold">
+          <GlassCard style={styles.balanceCard}>
+            <View style={styles.balanceRow}>
+              <Text style={styles.balanceLabel}>Available Balance:</Text>
+              <Text style={styles.balanceValue}>
                 {parseFloat(wallet.balance).toFixed(4)} POL
               </Text>
             </View>
           </GlassCard>
         )}
 
-        <GlassCard className="mb-6">
-          <Text className="text-white text-lg font-semibold mb-4">📍 Recipient Address</Text>
-          <View className="flex-row items-start mb-4">
-            <View className="flex-1 mr-3">
+        <GlassCard style={styles.inputCard}>
+          <Text style={styles.sectionLabel}>⬡ Recipient Address</Text>
+          <View style={styles.addressRow}>
+            <View style={styles.addressInputContainer}>
               <Input
                 variant="glass"
                 value={recipientAddress}
@@ -199,7 +214,7 @@ export default function SendScreen() {
               />
             </View>
             <IconButton
-              icon="📋"
+              icon="⎘"
               variant="glass"
               size="medium"
               onPress={pasteAddress}
@@ -207,8 +222,8 @@ export default function SendScreen() {
           </View>
         </GlassCard>
 
-        <GlassCard className="mb-6">
-          <Text className="text-white text-lg font-semibold mb-4">💰 Amount (POL)</Text>
+        <GlassCard style={styles.inputCard}>
+          <Text style={styles.sectionLabel}>◉ Amount (POL)</Text>
           <Input
             variant="glass"
             value={amount}
@@ -220,10 +235,10 @@ export default function SendScreen() {
         </GlassCard>
 
         {gasEstimate && (
-          <GlassCard className="mb-6">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-white/70 text-sm font-medium">⛽ Estimated Gas:</Text>
-              <Text className="text-white text-base font-semibold">
+          <GlassCard style={styles.gasCard}>
+            <View style={styles.gasRow}>
+              <Text style={styles.gasLabel}>⬢ Estimated Gas:</Text>
+              <Text style={styles.gasValue}>
                 {parseInt(gasEstimate).toLocaleString()} units
               </Text>
             </View>
@@ -231,19 +246,19 @@ export default function SendScreen() {
         )}
 
         {isEstimating && (
-          <GlassCard className="mb-6">
-            <View className="flex-row items-center justify-center">
+          <GlassCard style={styles.gasCard}>
+            <View style={styles.estimatingRow}>
               <ActivityIndicator size="small" color="white" />
-              <Text className="text-white/70 ml-3 font-medium">
+              <Text style={styles.estimatingText}>
                 Estimating gas...
               </Text>
             </View>
           </GlassCard>
         )}
 
-        <GlassCard>
+        <GlassCard style={styles.buttonCard}>
           <Button
-            title={isLoading ? "⏳ Sending..." : "🚀 Send Transaction"}
+            title={isLoading ? "◎ Sending..." : "→ Send Transaction"}
             variant="glass"
             size="large"
             fullWidth
@@ -252,6 +267,117 @@ export default function SendScreen() {
           />
         </GlassCard>
       </ScrollView>
-    </View>
+    </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  cardCenter: {
+    alignItems: 'center',
+  },
+  authTitle: {
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  authSubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
+    paddingTop: 60,
+    paddingBottom: 100, // Account for translucent tab bar
+  },
+  mainTitle: {
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 35,
+  },
+  balanceCard: {
+    marginBottom: 25,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  balanceLabel: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  balanceValue: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  inputCard: {
+    marginBottom: 25,
+  },
+  sectionLabel: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  addressInputContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  gasCard: {
+    marginBottom: 20,
+  },
+  gasRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  gasLabel: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  gasValue: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  estimatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  estimatingText: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginLeft: 12,
+    fontWeight: '500',
+  },
+  buttonCard: {
+    marginBottom: 20,
+  },
+});

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Alert, TextInput, Modal, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Alert, TextInput, Modal, ActivityIndicator, StyleSheet, ImageBackground } from "react-native";
 import { useWallet } from "@/contexts/WalletContext";
 import { GlassCard, Button, Title, Input } from '@/components/ui';
 import * as Clipboard from 'expo-clipboard';
@@ -71,56 +71,77 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 justify-center items-center">
-        <GlassCard variant="large" className="items-center">
-          <ActivityIndicator size="large" color="white" />
-          <Text className="text-white text-lg mt-4 font-medium">Loading wallet...</Text>
-        </GlassCard>
-      </View>
+      <ImageBackground
+        source={require('../../assets/images/background1.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+        <View style={styles.centered}>
+          <GlassCard variant="large">
+            <View style={styles.cardCenter}>
+              <ActivityIndicator size="large" color="white" />
+              <Text style={styles.loadingText}>Loading wallet...</Text>
+            </View>
+          </GlassCard>
+        </View>
+      </ImageBackground>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 justify-center items-center px-6">
-        <GlassCard variant="large" className="w-full max-w-sm items-center">
-          <Title level={2} variant="glass" className="text-center mb-2">
-            Welcome to Your Wallet
-          </Title>
-          <Text className="text-white/80 text-center mb-8 text-base">
-            Authenticate to access your secure wallet
-          </Text>
-          <Button
-            title="🔐 Authenticate"
-            variant="glass"
-            size="large"
-            fullWidth
-            onPress={authenticateWallet}
-          />
-        </GlassCard>
-      </View>
+      <ImageBackground
+        source={require('../../assets/images/background1.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+        <View style={styles.authContainer}>
+          <GlassCard variant="large" style={styles.authCard}>
+            <Title level={2} variant="glass" style={styles.authTitle}>
+              Welcome to Your Wallet
+            </Title>
+            <Text style={styles.authSubtitle}>
+              Authenticate to access your secure wallet
+            </Text>
+            <Button
+              title="◉ Authenticate"
+              variant="glass"
+              size="large"
+              fullWidth
+              onPress={authenticateWallet}
+            />
+          </GlassCard>
+        </View>
+      </ImageBackground>
     );
   }
 
   return (
-    <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500">
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingTop: 60 }}>
-        <Title level={1} variant="glass" className="text-center mb-8">
-          💎 Your Wallet
+    <ImageBackground
+      source={require('../../assets/images/background1.png')}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay} />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <Title level={1} variant="glass" style={styles.mainTitle}>
+          ◈ Your Wallet
         </Title>
 
         {wallet && (
-          <GlassCard className="mb-8">
-            <Text className="text-white/70 text-sm font-medium mb-2">Balance</Text>
-            <Text className="text-white text-4xl font-bold mb-4">
+          <GlassCard style={styles.balanceCard}>
+            <Text style={styles.balanceLabel}>Balance</Text>
+            <Text style={styles.balanceValue}>
               {parseFloat(wallet.balance).toFixed(4)} POL
             </Text>
-            <Text className="text-white/60 text-sm font-mono">
+            <Text style={styles.addressText}>
               {wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}
             </Text>
-            <View className="mt-4">
+            <View style={styles.refreshContainer}>
               <Button
-                title="🔄 Refresh Balance"
+                title="↻ Refresh Balance"
                 variant="glass"
                 size="small"
                 onPress={refreshBalance}
@@ -129,29 +150,27 @@ export default function HomeScreen() {
           </GlassCard>
         )}
 
-        <Title level={3} variant="glass" className="mb-4">
-          ⚙️ Settings
+        <Title level={3} variant="glass" style={styles.sectionTitle}>
+          ⚙ Settings
         </Title>
 
-        <GlassCard className="mb-6">
-          <View className="space-y-3">
+        <GlassCard style={styles.settingsCard}>
+          <View style={styles.buttonSpacing}>
             <Button
-              title="📤 Export Private Key"
+              title="↗ Export Private Key"
               variant="glass"
               size="medium"
               fullWidth
               onPress={handleExportPrivateKey}
-              className="mb-3"
-            />
-
-            <Button
-              title="🔄 Restore Wallet"
-              variant="glass"
-              size="medium"
-              fullWidth
-              onPress={() => setShowRestoreModal(true)}
             />
           </View>
+          <Button
+            title="↻ Restore Wallet"
+            variant="glass"
+            size="medium"
+            fullWidth
+            onPress={() => setShowRestoreModal(true)}
+          />
         </GlassCard>
 
         {error && (
@@ -167,8 +186,13 @@ export default function HomeScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowRestoreModal(false)}
       >
-        <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500">
-          <View className="flex-row justify-between items-center p-6 pt-12">
+        <ImageBackground
+          source={require('../../assets/images/background1.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          <View style={styles.overlay} />
+          <View style={styles.modalHeader}>
             <Title level={2} variant="glass">Restore Wallet</Title>
             <Button
               title="Cancel"
@@ -178,9 +202,9 @@ export default function HomeScreen() {
             />
           </View>
           
-          <View className="flex-1 p-6">
-            <GlassCard className="mb-6">
-              <Text className="text-white/80 text-base mb-4 leading-6">
+          <View style={styles.modalContent}>
+            <GlassCard>
+              <Text style={styles.modalDescription}>
                 Enter your private key to restore a different wallet. This will replace your current wallet.
               </Text>
               
@@ -196,7 +220,7 @@ export default function HomeScreen() {
               />
               
               <Button
-                title="🔄 Restore Wallet"
+                title="↻ Restore Wallet"
                 variant="glass"
                 size="large"
                 fullWidth
@@ -205,13 +229,24 @@ export default function HomeScreen() {
               />
             </GlassCard>
           </View>
-        </View>
+        </ImageBackground>
       </Modal>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
   container: {
     flex: 1,
   },
@@ -256,16 +291,19 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingTop: 60,
+    paddingBottom: 100, // Account for translucent tab bar
   },
   mainTitle: {
+    color: 'white',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
   },
   balanceCard: {
-    marginBottom: 32,
+    marginBottom: 40,
+    marginHorizontal: 0,
   },
   balanceLabel: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 8,
@@ -277,21 +315,24 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   addressText: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
     fontFamily: 'monospace',
   },
   refreshContainer: {
-    marginTop: 16,
+    marginTop: 20,
   },
   sectionTitle: {
-    marginBottom: 16,
+    color: 'white',
+    marginBottom: 20,
+    marginTop: 10,
   },
   settingsCard: {
-    marginBottom: 24,
+    marginBottom: 30,
+    marginHorizontal: 0,
   },
   buttonSpacing: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   errorCard: {
     backgroundColor: 'rgba(239, 68, 68, 0.2)',
