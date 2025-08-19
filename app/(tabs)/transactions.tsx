@@ -1,8 +1,39 @@
-import React from "react";
-import { View, Text, ScrollView, StyleSheet, ImageBackground } from "react-native";
-import { GlassCard, Title } from '@/components/ui';
+import React, { useEffect } from "react";
+import { View, Text, ScrollView, StyleSheet, ImageBackground, ActivityIndicator } from "react-native";
+import { GlassCard, Title, Button } from '@/components/ui';
+import { useWallet } from "@/contexts/WalletContext";
 
 export default function TransactionsScreen() {
+  const { 
+    wallet,
+    transactions, 
+    isLoadingTransactions, 
+    loadTransactionHistory, 
+    error 
+  } = useWallet();
+
+  useEffect(() => {
+    if (wallet?.address) {
+      loadTransactionHistory();
+    }
+  }, [wallet?.address]);
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const formatAmount = (value: string) => {
+    return parseFloat(value).toFixed(4);
+  };
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString();
+  };
+
+  const getTransactionIcon = (type: 'sent' | 'received') => {
+    return type === 'sent' ? '↗' : '↘';
+  };
+
   return (
     <ImageBackground
       source={require('../../assets/images/background3.png')}
@@ -15,57 +46,80 @@ export default function TransactionsScreen() {
           ⬢ Transactions
         </Title>
 
-        <GlassCard style={styles.comingSoonCard}>
-          <Text style={styles.iconText}>⬡</Text>
-          <Title level={2} variant="glass" style={styles.comingSoonTitle}>
-            Coming Soon
-          </Title>
-          <Text style={styles.comingSoonText}>
-            Transaction history will be available in a future update
-          </Text>
-        </GlassCard>
-
-        {/* Mock transaction cards for future implementation */}
-        <View style={styles.transactionsList}>
-          <GlassCard style={styles.transactionCard}>
-            <View style={styles.transactionRow}>
-              <Text style={styles.transactionType}>↗ Sent</Text>
-              <Text style={styles.transactionDate}>2024-01-15</Text>
-            </View>
-            <View style={styles.transactionRow}>
-              <Text style={styles.transactionAddress}>To: 0x1234...5678</Text>
-              <Text style={styles.transactionAmountOut}>-1.5 POL</Text>
-            </View>
+        {isLoadingTransactions ? (
+          <GlassCard style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="white" />
+            <Text style={styles.loadingText}>Loading transactions...</Text>
           </GlassCard>
-
-          <GlassCard style={styles.transactionCard}>
-            <View style={styles.transactionRow}>
-              <Text style={styles.transactionType}>↘ Received</Text>
-              <Text style={styles.transactionDate}>2024-01-14</Text>
-            </View>
-            <View style={styles.transactionRow}>
-              <Text style={styles.transactionAddress}>From: 0x9876...4321</Text>
-              <Text style={styles.transactionAmountIn}>+5.0 POL</Text>
-            </View>
+        ) : transactions.length === 0 ? (
+          <GlassCard style={styles.emptyCard}>
+            <Text style={styles.iconText}>⬡</Text>
+            <Title level={3} variant="glass" style={styles.emptyTitle}>
+              No Transactions Yet
+            </Title>
+            <Text style={styles.emptyText}>
+              Your transaction history will appear here once you send or receive POL
+            </Text>
+            <Button
+              title="↻ Refresh"
+              variant="glass"
+              size="small"
+              onPress={loadTransactionHistory}
+            />
           </GlassCard>
+        ) : (
+          <View style={styles.transactionsList}>
+            {transactions.map((tx, index) => (
+              <GlassCard key={tx.hash} style={styles.transactionCard}>
+                <View style={styles.transactionRow}>
+                  <Text style={styles.transactionType}>
+                    {getTransactionIcon(tx.type)} {tx.type === 'sent' ? 'Sent' : 'Received'}
+                  </Text>
+                  <Text style={styles.transactionDate}>
+                    {formatDate(tx.timestamp)}
+                  </Text>
+                </View>
+                <View style={styles.transactionRow}>
+                  <Text style={styles.transactionAddress}>
+                    {tx.type === 'sent' ? 'To: ' : 'From: '}
+                    {formatAddress(tx.type === 'sent' ? tx.to : tx.from)}
+                  </Text>
+                  <Text 
+                    style={tx.type === 'sent' ? styles.transactionAmountOut : styles.transactionAmountIn}
+                  >
+                    {tx.type === 'sent' ? '-' : '+'}
+                    {formatAmount(tx.value)} POL
+                  </Text>
+                </View>
+                <View style={styles.transactionDetails}>
+                  <Text style={styles.transactionHash}>
+                    Hash: {formatAddress(tx.hash)}
+                  </Text>
+                  <Text style={[
+                    styles.transactionStatus, 
+                    tx.status === 'success' ? styles.statusSuccess : styles.statusFailed
+                  ]}>
+                    {tx.status}
+                  </Text>
+                </View>
+              </GlassCard>
+            ))}
+          </View>
+        )}
 
-          <GlassCard style={styles.transactionCard}>
-            <View style={styles.transactionRow}>
-              <Text style={styles.transactionType}>↗ Sent</Text>
-              <Text style={styles.transactionDate}>2024-01-13</Text>
-            </View>
-            <View style={styles.transactionRow}>
-              <Text style={styles.transactionAddress}>To: 0xabcd...efgh</Text>
-              <Text style={styles.transactionAmountOut}>-0.25 POL</Text>
-            </View>
+        {error && (
+          <GlassCard style={styles.errorCard}>
+            <Text style={styles.errorText}>
+              Failed to load transactions: {error}
+            </Text>
+            <Button
+              title="↻ Retry"
+              variant="glass"
+              size="small"
+              onPress={loadTransactionHistory}
+            />
           </GlassCard>
-        </View>
-
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewText}>
-            Preview - These are example transactions
-          </Text>
-        </View>
+        )}
       </ScrollView>
     </ImageBackground>
   );
@@ -89,14 +143,24 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 24,
     paddingTop: 60,
-    paddingBottom: 100, // Account for translucent tab bar
+    paddingBottom: 100,
   },
   mainTitle: {
     color: 'white',
     textAlign: 'center',
     marginBottom: 35,
   },
-  comingSoonCard: {
+  loadingCard: {
+    alignItems: 'center',
+    marginBottom: 35,
+  },
+  loadingText: {
+    color: 'white',
+    fontSize: 16,
+    marginTop: 16,
+    fontWeight: '500',
+  },
+  emptyCard: {
     alignItems: 'center',
     marginBottom: 35,
   },
@@ -105,28 +169,37 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: 16,
   },
-  comingSoonTitle: {
+  emptyTitle: {
     color: 'white',
     textAlign: 'center',
     marginBottom: 8,
   },
-  comingSoonText: {
+  emptyText: {
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
     fontSize: 16,
+    marginBottom: 24,
   },
   transactionsList: {
-    marginTop: 30,
+    marginTop: 0,
   },
   transactionCard: {
     marginBottom: 16,
-    opacity: 0.5,
   },
   transactionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  transactionDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.2)',
   },
   transactionType: {
     color: 'white',
@@ -151,13 +224,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  previewContainer: {
-    marginTop: 24,
-  },
-  previewText: {
+  transactionHash: {
     color: 'rgba(255, 255, 255, 0.5)',
     fontSize: 12,
+    fontFamily: 'monospace',
+  },
+  transactionStatus: {
+    fontSize: 12,
+    fontWeight: '500',
+    textTransform: 'capitalize',
+  },
+  statusSuccess: {
+    color: '#86efac',
+  },
+  statusFailed: {
+    color: '#fca5a5',
+  },
+  errorCard: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(248, 113, 113, 0.3)',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  errorText: {
+    color: 'rgba(254, 202, 202, 1)',
     textAlign: 'center',
-    fontStyle: 'italic',
+    fontWeight: '500',
+    marginBottom: 16,
   },
 });

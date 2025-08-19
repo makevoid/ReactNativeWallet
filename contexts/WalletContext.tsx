@@ -1,18 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import WalletManagerService from '../services/WalletManagerService';
 import { WalletData } from '../services/base/BaseService';
+import { ProcessedTransaction } from '../services/BlockchainService';
 
 interface WalletContextType {
   wallet: WalletData | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
+  transactions: ProcessedTransaction[];
+  isLoadingTransactions: boolean;
   initializeWallet: () => Promise<void>;
   authenticateWallet: () => Promise<void>;
   sendTransaction: (to: string, amount: string) => Promise<string>;
   refreshBalance: () => Promise<void>;
   exportPrivateKey: () => Promise<string>;
   restoreFromPrivateKey: (privateKey: string) => Promise<void>;
+  loadTransactionHistory: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -34,6 +38,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
   const initializeWallet = async () => {
     setIsLoading(true);
@@ -146,17 +152,37 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
+  const loadTransactionHistory = async () => {
+    if (!wallet?.address) return;
+    
+    setIsLoadingTransactions(true);
+    setError(null);
+    
+    try {
+      const history = await WalletManagerService.getTransactionHistory(wallet.address);
+      setTransactions(history.transactions);
+    } catch (err) {
+      console.error('Failed to load transaction history:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load transactions');
+    } finally {
+      setIsLoadingTransactions(false);
+    }
+  };
+
   const value: WalletContextType = {
     wallet,
     isLoading,
     isAuthenticated,
     error,
+    transactions,
+    isLoadingTransactions,
     initializeWallet,
     authenticateWallet,
     sendTransaction,
     refreshBalance,
     exportPrivateKey,
     restoreFromPrivateKey,
+    loadTransactionHistory,
   };
 
   return (

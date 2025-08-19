@@ -27,6 +27,51 @@ export interface TransactionResult {
   blockNumber?: number;
 }
 
+export interface AnkrTransaction {
+  blockHash: string;
+  blockNumber: string;
+  blockchain: string;
+  cumulativeGasUsed: string;
+  from: string;
+  gas: string;
+  gasPrice: string;
+  gasUsed: string;
+  hash: string;
+  input: string;
+  nonce: string;
+  r: string;
+  s: string;
+  status: string;
+  timestamp: string;
+  to: string;
+  transactionIndex: string;
+  type: string;
+  v: string;
+  value: string;
+}
+
+export interface AnkrTransactionResponse {
+  id: number;
+  jsonrpc: string;
+  result: {
+    transactions: AnkrTransaction[];
+    nextPageToken?: string;
+  };
+}
+
+export interface ProcessedTransaction {
+  hash: string;
+  from: string;
+  to: string;
+  value: string;
+  timestamp: number;
+  status: 'success' | 'failed';
+  type: 'sent' | 'received';
+  gasUsed: string;
+  gasPrice: string;
+  blockNumber: number;
+}
+
 export class BlockchainService extends BaseService {
   private provider: ethers.JsonRpcProvider | null = null;
   private currentNetwork: NetworkConfig | null = null;
@@ -218,6 +263,92 @@ export class BlockchainService extends BaseService {
         new BlockchainError('Failed to get block number'), 
         'Getting block number'
       );
+    }
+  }
+
+  async getTransactionHistory(
+    address: string, 
+    pageSize: number = 20,
+    pageToken?: string
+  ): Promise<{ transactions: ProcessedTransaction[]; nextPageToken?: string }> {
+    this.validateInitialized();
+
+    try {
+      const requestBody = {
+        id: 1,
+        jsonrpc: '2.0',
+        method: 'ankr_getTransactionsByAddress',
+        params: {
+          address,
+          blockchain: 'polygon',
+          pageSize,
+          descOrder: true,
+          includeLogs: false,
+          ...(pageToken && { pageToken })
+        }
+      };
+
+      console.log('Making Ankr API request:', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(RPC_ENDPOINTS.ANKR_MULTICHAIN, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response body:', responseText);
+
+      if (!response.ok) {
+        throw new BlockchainError(`HTTP error! status: ${response.status}, body: ${responseText}`);
+      }
+
+      const data = JSON.parse(responseText);
+      
+      if (data.error) {
+        throw new BlockchainError(`Ankr API error: ${data.error.message || 'Unknown error'}`);
+      }
+      
+      if (!data.result) {
+        console.log('No result in response, returning empty transactions');
+        return { transactions: [] };
+      }
+
+      if (!data.result.transactions) {
+        console.log('No transactions in result, returning empty transactions');
+        return { transactions: [] };
+      }
+
+      console.log('Found transactions:', data.result.transactions.length);
+
+      const processedTransactions = data.result.transactions.map((tx: AnkrTransaction) => {
+        const isReceived = tx.to.toLowerCase() === address.toLowerCase();
+        const valueInEther = ethers.formatEther(tx.value || '0');
+        
+        return {
+          hash: tx.hash,
+          from: tx.from,
+          to: tx.to,
+          value: valueInEther,
+          timestamp: parseInt(tx.timestamp) * 1000, // Convert to milliseconds
+          status: tx.status === '1' ? 'success' : 'failed' as 'success' | 'failed',
+          type: isReceived ? 'received' : 'sent' as 'sent' | 'received',
+          gasUsed: tx.gasUsed,
+          gasPrice: tx.gasPrice,
+          blockNumber: parseInt(tx.blockNumber, 16) // Convert hex to decimal
+        } as ProcessedTransaction;
+      });
+
+      return {
+        transactions: processedTransactions,
+        nextPageToken: data.result.nextPageToken
+      };
+    } catch (error) {
+      console.error('Transaction history error:', error);
+      throw new BlockchainError(`Failed to get transaction history: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

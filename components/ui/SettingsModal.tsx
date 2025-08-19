@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Modal, StyleSheet, ImageBackground } from 'react-native';
-import { GlassCard, Button, Title } from './index';
+import { GlassCard } from './GlassCard';
+import { Button } from './Button';
+import { Title } from './Title';
 
 interface SettingsModalProps {
   visible: boolean;

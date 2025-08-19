@@ -207,6 +207,17 @@ export class WalletManagerService extends BaseService {
     return this.wallet.address;
   }
 
+  async getTransactionHistory(address: string): Promise<{ transactions: import('./BlockchainService').ProcessedTransaction[]; nextPageToken?: string }> {
+    this.validateInitialized();
+    
+    try {
+      return await BlockchainService.getTransactionHistory(address);
+    } catch (error) {
+      await this.handleError(error, 'Getting transaction history');
+      return { transactions: [] };
+    }
+  }
+
   // Private helper methods
   private async loadExistingWallet(): Promise<void> {
     try {
