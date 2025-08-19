@@ -1,13 +1,13 @@
 # React Native Wallet 🔷
 
-A modern, secure cryptocurrency wallet built with React Native and Expo, featuring biometric authentication and a beautiful glassmorphic design.
+Open source Ethereum wallet built with React Native and Expo, featuring biometric authentication and a glassmorphic design.
 
 ## ✨ Features
 
 - **🔐 Secure Storage**: Private keys stored in iOS Keychain / Android Keystore with biometric protection
 - **👆 Biometric Authentication**: Face ID, Touch ID, and device passcode support
 - **💎 Glassmorphic Design**: Modern UI with semi-transparent cards and custom backgrounds
-- **🌐 Polygon Network**: Built for POL (Polygon) transactions on mainnet
+- **🌐 Polygon Network**: Built for POL (Polygon) transactions on mainnet, easily adaptable to other EVM networks, ETH, ARB, etc.
 - **📤 Send Transactions**: Easy-to-use interface for sending POL to other wallets
 - **💰 Real-time Balance**: Live balance updates from the blockchain
 - **🔑 Wallet Management**: Export and restore wallets using private keys
