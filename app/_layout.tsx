@@ -1,3 +1,4 @@
+import "../global.css";
 import 'react-native-get-random-values';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';

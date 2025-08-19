@@ -2,15 +2,13 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  TextInput,
-  Button,
   Alert,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
 import { useWallet } from "@/contexts/WalletContext";
+import { GlassCard, Button, Title, Input, IconButton } from '@/components/ui';
 import BlockchainService from "@/services/BlockchainService";
 import * as Clipboard from "expo-clipboard";
 
@@ -154,208 +152,106 @@ export default function SendScreen() {
 
   if (!isAuthenticated) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.placeholder}>Please authenticate your wallet to send transactions</Text>
+      <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 justify-center items-center px-6">
+        <GlassCard variant="large" className="items-center">
+          <Title level={2} variant="glass" className="text-center mb-4">
+            🔐 Authentication Required
+          </Title>
+          <Text className="text-white/80 text-center">
+            Please authenticate your wallet to send transactions
+          </Text>
+        </GlassCard>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Send POL</Text>
+    <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500">
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingTop: 60 }}>
+        <Title level={1} variant="glass" className="text-center mb-8">
+          💸 Send POL
+        </Title>
 
         {wallet && (
-          <View style={styles.balanceContainer}>
-            <Text style={styles.balanceLabel}>Available Balance:</Text>
-            <Text style={styles.balanceValue}>{parseFloat(wallet.balance).toFixed(4)} POL</Text>
-          </View>
+          <GlassCard className="mb-6">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-white/70 text-sm font-medium">Available Balance:</Text>
+              <Text className="text-white text-lg font-bold">
+                {parseFloat(wallet.balance).toFixed(4)} POL
+              </Text>
+            </View>
+          </GlassCard>
         )}
 
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Recipient Address</Text>
-          <View style={styles.addressInputContainer}>
-            <TextInput
-              style={styles.addressInput}
-              value={recipientAddress}
-              onChangeText={setRecipientAddress}
-              placeholder="0x..."
-              autoCapitalize="none"
-              autoCorrect={false}
-              multiline={true}
-              numberOfLines={2}
+        <GlassCard className="mb-6">
+          <Text className="text-white text-lg font-semibold mb-4">📍 Recipient Address</Text>
+          <View className="flex-row items-start mb-4">
+            <View className="flex-1 mr-3">
+              <Input
+                variant="glass"
+                value={recipientAddress}
+                onChangeText={setRecipientAddress}
+                placeholder="0x..."
+                autoCapitalize="none"
+                autoCorrect={false}
+                multiline={true}
+                numberOfLines={2}
+              />
+            </View>
+            <IconButton
+              icon="📋"
+              variant="glass"
+              size="medium"
+              onPress={pasteAddress}
             />
-            <TouchableOpacity style={styles.pasteButton} onPress={pasteAddress}>
-              <Text style={styles.pasteButtonText}>Paste</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </GlassCard>
 
-        <View style={styles.inputSection}>
-          <Text style={styles.inputLabel}>Amount (POL)</Text>
-          <TextInput
-            style={styles.amountInput}
+        <GlassCard className="mb-6">
+          <Text className="text-white text-lg font-semibold mb-4">💰 Amount (POL)</Text>
+          <Input
+            variant="glass"
             value={amount}
             onChangeText={setAmount}
             placeholder="0.0"
             keyboardType="decimal-pad"
             autoCorrect={false}
           />
-        </View>
+        </GlassCard>
 
         {gasEstimate && (
-          <View style={styles.gasSection}>
-            <Text style={styles.gasLabel}>Estimated Gas:</Text>
-            <Text style={styles.gasValue}>{parseInt(gasEstimate).toLocaleString()} units</Text>
-          </View>
+          <GlassCard className="mb-6">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-white/70 text-sm font-medium">⛽ Estimated Gas:</Text>
+              <Text className="text-white text-base font-semibold">
+                {parseInt(gasEstimate).toLocaleString()} units
+              </Text>
+            </View>
+          </GlassCard>
         )}
 
         {isEstimating && (
-          <View style={styles.estimatingContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.estimatingText}>Estimating gas...</Text>
-          </View>
+          <GlassCard className="mb-6">
+            <View className="flex-row items-center justify-center">
+              <ActivityIndicator size="small" color="white" />
+              <Text className="text-white/70 ml-3 font-medium">
+                Estimating gas...
+              </Text>
+            </View>
+          </GlassCard>
         )}
 
-        <View style={styles.buttonContainer}>
+        <GlassCard>
           <Button
-            title={isLoading ? "Sending..." : "Send Transaction"}
+            title={isLoading ? "⏳ Sending..." : "🚀 Send Transaction"}
+            variant="glass"
+            size="large"
+            fullWidth
             onPress={handleSend}
             disabled={isLoading || !recipientAddress.trim() || !amount.trim()}
-            color="#007AFF"
           />
-        </View>
-      </View>
-    </ScrollView>
+        </GlassCard>
+      </ScrollView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  placeholder: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginTop: 100,
-  },
-  balanceContainer: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  balanceLabel: {
-    fontSize: 14,
-    color: "#666",
-  },
-  balanceValue: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  inputSection: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#333",
-  },
-  addressInputContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  addressInput: {
-    flex: 1,
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    fontSize: 14,
-    minHeight: 60,
-    textAlignVertical: "top",
-    marginRight: 10,
-  },
-  pasteButton: {
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    justifyContent: "center",
-  },
-  pasteButtonText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 14,
-  },
-  amountInput: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    fontSize: 16,
-  },
-  gasSection: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  gasLabel: {
-    fontSize: 14,
-    color: "#666",
-  },
-  gasValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
-  },
-  estimatingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
-  estimatingText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: "#666",
-  },
-  buttonContainer: {
-    marginBottom: 20,
-  },
-  warningContainer: {
-    backgroundColor: "#FFF3CD",
-    borderRadius: 8,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#FFEAA7",
-  },
-  warningText: {
-    fontSize: 12,
-    color: "#856404",
-    textAlign: "center",
-    lineHeight: 16,
-  },
-});

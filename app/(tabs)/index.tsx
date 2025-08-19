@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Button, Alert, TextInput, Modal } from "react-native";
+import { View, Text, ScrollView, Alert, TextInput, Modal, ActivityIndicator } from "react-native";
 import { useWallet } from "@/contexts/WalletContext";
+import { GlassCard, Button, Title, Input } from '@/components/ui';
 import * as Clipboard from 'expo-clipboard';
 
 export default function HomeScreen() {
@@ -11,24 +12,12 @@ export default function HomeScreen() {
     error, 
     authenticateWallet, 
     refreshBalance, 
-    deleteWallet,
     exportPrivateKey,
     restoreFromPrivateKey
   } = useWallet();
 
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [privateKeyInput, setPrivateKeyInput] = useState('');
-
-  const handleDeleteWallet = () => {
-    Alert.alert(
-      "Delete Wallet",
-      "Are you sure you want to delete your wallet? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: deleteWallet }
-      ]
-    );
-  };
 
   const handleExportPrivateKey = async () => {
     try {
@@ -80,82 +69,97 @@ export default function HomeScreen() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 justify-center items-center">
+        <GlassCard variant="large" className="items-center">
+          <ActivityIndicator size="large" color="white" />
+          <Text className="text-white text-lg mt-4 font-medium">Loading wallet...</Text>
+        </GlassCard>
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 justify-center items-center px-6">
+        <GlassCard variant="large" className="w-full max-w-sm items-center">
+          <Title level={2} variant="glass" className="text-center mb-2">
+            Welcome to Your Wallet
+          </Title>
+          <Text className="text-white/80 text-center mb-8 text-base">
+            Authenticate to access your secure wallet
+          </Text>
+          <Button
+            title="🔐 Authenticate"
+            variant="glass"
+            size="large"
+            fullWidth
+            onPress={authenticateWallet}
+          />
+        </GlassCard>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        {!isAuthenticated && (
-          <View style={styles.connectionSection}>
+    <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500">
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingTop: 60 }}>
+        <Title level={1} variant="glass" className="text-center mb-8">
+          💎 Your Wallet
+        </Title>
+
+        {wallet && (
+          <GlassCard className="mb-8">
+            <Text className="text-white/70 text-sm font-medium mb-2">Balance</Text>
+            <Text className="text-white text-4xl font-bold mb-4">
+              {parseFloat(wallet.balance).toFixed(4)} POL
+            </Text>
+            <Text className="text-white/60 text-sm font-mono">
+              {wallet.address.slice(0, 10)}...{wallet.address.slice(-8)}
+            </Text>
+            <View className="mt-4">
+              <Button
+                title="🔄 Refresh Balance"
+                variant="glass"
+                size="small"
+                onPress={refreshBalance}
+              />
+            </View>
+          </GlassCard>
+        )}
+
+        <Title level={3} variant="glass" className="mb-4">
+          ⚙️ Settings
+        </Title>
+
+        <GlassCard className="mb-6">
+          <View className="space-y-3">
             <Button
-              title={isLoading ? "Loading..." : "Unlock Wallet"}
-              onPress={authenticateWallet}
-              disabled={isLoading}
+              title="📤 Export Private Key"
+              variant="glass"
+              size="medium"
+              fullWidth
+              onPress={handleExportPrivateKey}
+              className="mb-3"
+            />
+
+            <Button
+              title="🔄 Restore Wallet"
+              variant="glass"
+              size="medium"
+              fullWidth
+              onPress={() => setShowRestoreModal(true)}
             />
           </View>
-        )}
+        </GlassCard>
 
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
+          <GlassCard className="bg-red-500/20 border-red-400/30">
+            <Text className="text-red-200 text-center font-medium">{error}</Text>
+          </GlassCard>
         )}
-
-        {isAuthenticated && wallet && (
-          <View style={styles.walletInfo}>
-            <Text style={styles.sectionTitle}>Wallet Information</Text>
-            
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Address:</Text>
-              <Text style={styles.value}>
-                {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
-              </Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Balance:</Text>
-              <Text style={styles.value}>
-                {parseFloat(wallet.balance).toFixed(4)} POL
-              </Text>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <Button title="Refresh Balance" onPress={refreshBalance} />
-            </View>
-
-            <View style={styles.settingsSection}>
-              <Text style={styles.settingsTitle}>Wallet Settings</Text>
-              
-              <View style={styles.buttonContainer}>
-                <Button 
-                  title="Export Private Key" 
-                  onPress={handleExportPrivateKey} 
-                  color="#FF9500" 
-                />
-              </View>
-
-              <View style={styles.buttonContainer}>
-                <Button 
-                  title="Restore Different Wallet" 
-                  onPress={() => setShowRestoreModal(true)} 
-                  color="#007AFF" 
-                />
-              </View>
-
-            </View>
-          </View>
-        )}
-
-        {isLoading && (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>Loading...</Text>
-          </View>
-        )}
-
-        {!isAuthenticated && !isLoading && !wallet && (
-          <View style={styles.statusContainer}>
-            <Text style={styles.statusText}>Authenticate to access your wallet</Text>
-          </View>
-        )}
-      </View>
+      </ScrollView>
 
       <Modal
         visible={showRestoreModal}
@@ -163,164 +167,156 @@ export default function HomeScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowRestoreModal(false)}
       >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Restore Wallet</Text>
-            <Button title="Cancel" onPress={() => setShowRestoreModal(false)} />
+        <View className="flex-1 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500">
+          <View className="flex-row justify-between items-center p-6 pt-12">
+            <Title level={2} variant="glass">Restore Wallet</Title>
+            <Button
+              title="Cancel"
+              variant="glass"
+              size="small"
+              onPress={() => setShowRestoreModal(false)}
+            />
           </View>
           
-          <View style={styles.modalContent}>
-            <Text style={styles.modalDescription}>
-              Enter your private key to restore a different wallet. This will replace your current wallet.
-            </Text>
-            
-            <TextInput
-              style={styles.privateKeyInput}
-              value={privateKeyInput}
-              onChangeText={setPrivateKeyInput}
-              placeholder="Enter private key (0x...)"
-              multiline
-              numberOfLines={3}
-              secureTextEntry={false}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-            
-            <View style={styles.modalButtons}>
+          <View className="flex-1 p-6">
+            <GlassCard className="mb-6">
+              <Text className="text-white/80 text-base mb-4 leading-6">
+                Enter your private key to restore a different wallet. This will replace your current wallet.
+              </Text>
+              
+              <Input
+                variant="glass"
+                value={privateKeyInput}
+                onChangeText={setPrivateKeyInput}
+                placeholder="Enter private key (0x...)"
+                multiline
+                numberOfLines={3}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              
               <Button
-                title="Restore Wallet"
+                title="🔄 Restore Wallet"
+                variant="glass"
+                size="large"
+                fullWidth
                 onPress={handleRestoreWallet}
                 disabled={!privateKeyInput.trim() || isLoading}
               />
-            </View>
+            </GlassCard>
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
   },
-  content: {
-    padding: 20,
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  connectionSection: {
-    marginBottom: 30,
-    alignItems: "center",
+  cardCenter: {
+    alignItems: 'center',
   },
-  errorContainer: {
-    backgroundColor: "#FFE5E5",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 20,
+  loadingText: {
+    color: 'white',
+    fontSize: 18,
+    marginTop: 16,
+    fontWeight: '500',
   },
-  errorText: {
-    color: "#D32F2F",
-    textAlign: "center",
+  authContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  authCard: {
+    width: '100%',
+    maxWidth: 350,
+    alignItems: 'center',
+  },
+  authTitle: {
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  authSubtitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    marginBottom: 32,
+    fontSize: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 24,
+    paddingTop: 60,
+  },
+  mainTitle: {
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  balanceCard: {
+    marginBottom: 32,
+  },
+  balanceLabel: {
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 8,
   },
-  walletInfo: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+  balanceValue: {
+    color: 'white',
+    fontSize: 36,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  addressText: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 14,
+    fontFamily: 'monospace',
+  },
+  refreshContainer: {
+    marginTop: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 15,
+    marginBottom: 16,
   },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  settingsCard: {
+    marginBottom: 24,
+  },
+  buttonSpacing: {
     marginBottom: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
   },
-  label: {
-    fontSize: 14,
-    color: "#666",
+  errorCard: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    borderColor: 'rgba(248, 113, 113, 0.3)',
   },
-  value: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#333",
-  },
-  buttonContainer: {
-    marginTop: 15,
-  },
-  settingsSection: {
-    marginTop: 30,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-  },
-  settingsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 15,
-    color: "#333",
-  },
-  statusContainer: {
-    padding: 20,
-    alignItems: "center",
-  },
-  statusText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
+  errorText: {
+    color: 'rgba(254, 202, 202, 1)',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 24,
+    paddingTop: 48,
   },
   modalContent: {
     flex: 1,
-    padding: 20,
+    padding: 24,
   },
   modalDescription: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  privateKeyInput: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    fontSize: 14,
-    minHeight: 80,
-    textAlignVertical: "top",
-    marginBottom: 20,
-  },
-  modalButtons: {
-    marginTop: 20,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 16,
+    marginBottom: 16,
+    lineHeight: 24,
   },
 });
