@@ -3,6 +3,9 @@ import { WagmiProvider } from "wagmi";
 import { mainnet, polygon, arbitrum } from "@wagmi/core/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit, defaultWagmiConfig, AppKit } from "@reown/appkit-wagmi-react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import TabNavigator from "./navigation/TabNavigator";
 
 // 0. Setup queryClient
 const queryClient = new QueryClient();
@@ -37,10 +40,15 @@ createAppKit({
 
 export default function App() {
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <AppKit />
-      </QueryClientProvider>
-    </WagmiProvider>
+    <SafeAreaProvider>
+      <WagmiProvider config={wagmiConfig}>
+        <QueryClientProvider client={queryClient}>
+          <NavigationContainer>
+            <TabNavigator />
+            <AppKit />
+          </NavigationContainer>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </SafeAreaProvider>
   );
 }
