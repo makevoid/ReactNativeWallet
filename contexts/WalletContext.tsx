@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import WalletService, { WalletInfo } from '../services/WalletService';
+import WalletManagerService from '../services/WalletManagerService';
+import { WalletData } from '../services/base/BaseService';
 
 interface WalletContextType {
-  wallet: WalletInfo | null;
+  wallet: WalletData | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
@@ -10,7 +11,8 @@ interface WalletContextType {
   authenticateWallet: () => Promise<void>;
   sendTransaction: (to: string, amount: string) => Promise<string>;
   refreshBalance: () => Promise<void>;
-  deleteWallet: () => Promise<void>;
+  exportPrivateKey: () => Promise<string>;
+  restoreFromPrivateKey: (privateKey: string) => Promise<void>;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -28,7 +30,7 @@ interface WalletProviderProps {
 }
 
 export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
-  const [wallet, setWallet] = useState<WalletInfo | null>(null);
+  const [wallet, setWallet] = useState<WalletData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,9 +40,18 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      const walletInfo = await WalletService.initializeWallet();
-      setWallet(walletInfo);
-      setIsAuthenticated(!!walletInfo);
+      await WalletManagerService.initialize();
+      
+      if (WalletManagerService.isWalletLoaded()) {
+        const walletData = await WalletManagerService.getWalletData();
+        setWallet(walletData);
+        setIsAuthenticated(true);
+      } else {
+        // Create a new wallet if none exists
+        const walletData = await WalletManagerService.createWallet();
+        setWallet(walletData);
+        setIsAuthenticated(true);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to initialize wallet');
     } finally {
@@ -53,9 +64,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      const walletInfo = await WalletService.authenticateAndGetWallet();
-      if (walletInfo) {
-        setWallet(walletInfo);
+      const walletData = await WalletManagerService.authenticateAndGetWallet();
+      if (walletData) {
+        setWallet(walletData);
         setIsAuthenticated(true);
       } else {
         setError('Authentication failed');
@@ -75,7 +86,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     setError(null);
     
     try {
-      const txHash = await WalletService.sendTransaction(to, amount);
+      const txHash = await WalletManagerService.sendTransaction({ to, amount });
       // Refresh balance after sending transaction
       await refreshBalance();
       return txHash;
@@ -90,25 +101,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     if (!wallet) return;
     
     try {
-      const balance = await WalletService.getBalance();
+      const balance = await WalletManagerService.getBalance();
       setWallet(prev => prev ? { ...prev, balance } : null);
     } catch (err) {
       console.error('Failed to refresh balance:', err);
-    }
-  };
-
-  const deleteWallet = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      await WalletService.deleteWallet();
-      setWallet(null);
-      setIsAuthenticated(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete wallet');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -116,6 +112,39 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   useEffect(() => {
     initializeWallet();
   }, []);
+
+  const exportPrivateKey = async (): Promise<string> => {
+    if (!isAuthenticated) {
+      throw new Error('Wallet not authenticated');
+    }
+    
+    setError(null);
+    
+    try {
+      return await WalletManagerService.exportPrivateKey();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Export failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
+  const restoreFromPrivateKey = async (privateKey: string): Promise<void> => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const walletData = await WalletManagerService.restoreWallet(privateKey);
+      setWallet(walletData);
+      setIsAuthenticated(true);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Restore failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const value: WalletContextType = {
     wallet,
@@ -126,7 +155,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     authenticateWallet,
     sendTransaction,
     refreshBalance,
-    deleteWallet,
+    exportPrivateKey,
+    restoreFromPrivateKey,
   };
 
   return (

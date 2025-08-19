@@ -1,6 +1,7 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, Button, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, ScrollView, Button, Alert, TextInput, Modal } from "react-native";
 import { useWallet } from "@/contexts/WalletContext";
+import * as Clipboard from 'expo-clipboard';
 
 export default function HomeScreen() {
   const { 
@@ -10,8 +11,13 @@ export default function HomeScreen() {
     error, 
     authenticateWallet, 
     refreshBalance, 
-    deleteWallet 
+    deleteWallet,
+    exportPrivateKey,
+    restoreFromPrivateKey
   } = useWallet();
+
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [privateKeyInput, setPrivateKeyInput] = useState('');
 
   const handleDeleteWallet = () => {
     Alert.alert(
@@ -22,6 +28,56 @@ export default function HomeScreen() {
         { text: "Delete", style: "destructive", onPress: deleteWallet }
       ]
     );
+  };
+
+  const handleExportPrivateKey = async () => {
+    try {
+      const privateKey = await exportPrivateKey();
+      
+      Alert.alert(
+        "Export Private Key",
+        "Choose how to export your private key:",
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Copy to Clipboard", 
+            onPress: () => {
+              Clipboard.setStringAsync(privateKey);
+              Alert.alert("Copied", "Private key copied to clipboard");
+            }
+          },
+          {
+            text: "Show Key",
+            onPress: () => {
+              Alert.alert(
+                "Private Key",
+                privateKey,
+                [{ text: "OK" }],
+                { cancelable: true }
+              );
+            }
+          }
+        ]
+      );
+    } catch (err) {
+      Alert.alert("Export Failed", err instanceof Error ? err.message : "Unknown error");
+    }
+  };
+
+  const handleRestoreWallet = async () => {
+    if (!privateKeyInput.trim()) {
+      Alert.alert("Error", "Please enter a private key");
+      return;
+    }
+
+    try {
+      await restoreFromPrivateKey(privateKeyInput.trim());
+      setShowRestoreModal(false);
+      setPrivateKeyInput('');
+      Alert.alert("Success", "Wallet restored successfully");
+    } catch (err) {
+      Alert.alert("Restore Failed", err instanceof Error ? err.message : "Unknown error");
+    }
   };
 
   return (
@@ -65,8 +121,25 @@ export default function HomeScreen() {
               <Button title="Refresh Balance" onPress={refreshBalance} />
             </View>
 
-            <View style={styles.buttonContainer}>
-              <Button title="Delete Wallet" onPress={handleDeleteWallet} color="#FF3B30" />
+            <View style={styles.settingsSection}>
+              <Text style={styles.settingsTitle}>Wallet Settings</Text>
+              
+              <View style={styles.buttonContainer}>
+                <Button 
+                  title="Export Private Key" 
+                  onPress={handleExportPrivateKey} 
+                  color="#FF9500" 
+                />
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <Button 
+                  title="Restore Different Wallet" 
+                  onPress={() => setShowRestoreModal(true)} 
+                  color="#007AFF" 
+                />
+              </View>
+
             </View>
           </View>
         )}
@@ -83,6 +156,46 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+
+      <Modal
+        visible={showRestoreModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowRestoreModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Restore Wallet</Text>
+            <Button title="Cancel" onPress={() => setShowRestoreModal(false)} />
+          </View>
+          
+          <View style={styles.modalContent}>
+            <Text style={styles.modalDescription}>
+              Enter your private key to restore a different wallet. This will replace your current wallet.
+            </Text>
+            
+            <TextInput
+              style={styles.privateKeyInput}
+              value={privateKeyInput}
+              onChangeText={setPrivateKeyInput}
+              placeholder="Enter private key (0x...)"
+              multiline
+              numberOfLines={3}
+              secureTextEntry={false}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            
+            <View style={styles.modalButtons}>
+              <Button
+                title="Restore Wallet"
+                onPress={handleRestoreWallet}
+                disabled={!privateKeyInput.trim() || isLoading}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -148,6 +261,18 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 15,
   },
+  settingsSection: {
+    marginTop: 30,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+  },
+  settingsTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 15,
+    color: "#333",
+  },
   statusContainer: {
     padding: 20,
     alignItems: "center",
@@ -156,5 +281,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
     textAlign: "center",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "white",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  modalContent: {
+    flex: 1,
+    padding: 20,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  privateKeyInput: {
+    backgroundColor: "white",
+    borderRadius: 8,
+    padding: 15,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    fontSize: 14,
+    minHeight: 80,
+    textAlignVertical: "top",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    marginTop: 20,
   },
 });
