@@ -1,75 +1,160 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React from "react";
+import { View, Text, StyleSheet, ScrollView, Button, Alert } from "react-native";
+import { useWallet } from "@/contexts/WalletContext";
 
 export default function HomeScreen() {
+  const { 
+    wallet, 
+    isLoading, 
+    isAuthenticated, 
+    error, 
+    authenticateWallet, 
+    refreshBalance, 
+    deleteWallet 
+  } = useWallet();
+
+  const handleDeleteWallet = () => {
+    Alert.alert(
+      "Delete Wallet",
+      "Are you sure you want to delete your wallet? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: deleteWallet }
+      ]
+    );
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        {!isAuthenticated && (
+          <View style={styles.connectionSection}>
+            <Button
+              title={isLoading ? "Loading..." : "Unlock Wallet"}
+              onPress={authenticateWallet}
+              disabled={isLoading}
+            />
+          </View>
+        )}
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
+        {isAuthenticated && wallet && (
+          <View style={styles.walletInfo}>
+            <Text style={styles.sectionTitle}>Wallet Information</Text>
+            
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Address:</Text>
+              <Text style={styles.value}>
+                {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Balance:</Text>
+              <Text style={styles.value}>
+                {parseFloat(wallet.balance).toFixed(4)} ETH
+              </Text>
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <Button title="Refresh Balance" onPress={refreshBalance} />
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <Button title="Delete Wallet" onPress={handleDeleteWallet} color="#FF3B30" />
+            </View>
+          </View>
+        )}
+
+        {isLoading && (
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusText}>Loading...</Text>
+          </View>
+        )}
+
+        {!isAuthenticated && !isLoading && !wallet && (
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusText}>Authenticate to access your wallet</Text>
+          </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  content: {
+    padding: 20,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  connectionSection: {
+    marginBottom: 30,
+    alignItems: "center",
+  },
+  errorContainer: {
+    backgroundColor: "#FFE5E5",
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  errorText: {
+    color: "#D32F2F",
+    textAlign: "center",
+    fontSize: 14,
+  },
+  walletInfo: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 15,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  label: {
+    fontSize: 14,
+    color: "#666",
+  },
+  value: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+  },
+  buttonContainer: {
+    marginTop: 15,
+  },
+  statusContainer: {
+    padding: 20,
+    alignItems: "center",
+  },
+  statusText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
   },
 });

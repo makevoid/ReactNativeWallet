@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "This app uses Face ID to securely access your wallet and private keys."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,6 +36,15 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID to authenticate you."
+        }
+      ],
+      [
+        "expo-secure-store"
       ]
     ],
     "experiments": {
