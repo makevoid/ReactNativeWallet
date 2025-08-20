@@ -1,25 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import WalletManagerService from '../services/WalletManagerService';
-import { WalletData } from '../services/base/BaseService';
-import { ProcessedTransaction } from '../services/BlockchainService';
 
-interface WalletContextType {
-  wallet: WalletData | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-  error: string | null;
-  transactions: ProcessedTransaction[];
-  isLoadingTransactions: boolean;
-  initializeWallet: () => Promise<void>;
-  authenticateWallet: () => Promise<void>;
-  sendTransaction: (to: string, amount: string) => Promise<string>;
-  refreshBalance: () => Promise<void>;
-  exportPrivateKey: () => Promise<string>;
-  restoreFromPrivateKey: (privateKey: string) => Promise<void>;
-  loadTransactionHistory: () => Promise<void>;
-}
-
-const WalletContext = createContext<WalletContextType | undefined>(undefined);
+const WalletContext = createContext(undefined);
 
 export const useWallet = () => {
   const context = useContext(WalletContext);
@@ -29,16 +11,12 @@ export const useWallet = () => {
   return context;
 };
 
-interface WalletProviderProps {
-  children: ReactNode;
-}
-
-export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
-  const [wallet, setWallet] = useState<WalletData | null>(null);
+export const WalletProvider = ({ children }) => {
+  const [wallet, setWallet] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [transactions, setTransactions] = useState<ProcessedTransaction[]>([]);
+  const [error, setError] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
 
   const initializeWallet = async () => {
@@ -84,7 +62,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
-  const sendTransaction = async (to: string, amount: string): Promise<string> => {
+  const sendTransaction = async (to, amount) => {
     if (!isAuthenticated) {
       throw new Error('Wallet not authenticated');
     }
@@ -119,7 +97,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     initializeWallet();
   }, []);
 
-  const exportPrivateKey = async (): Promise<string> => {
+  const exportPrivateKey = async () => {
     if (!isAuthenticated) {
       throw new Error('Wallet not authenticated');
     }
@@ -135,7 +113,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
-  const restoreFromPrivateKey = async (privateKey: string): Promise<void> => {
+  const restoreFromPrivateKey = async (privateKey) => {
     setIsLoading(true);
     setError(null);
     
@@ -169,7 +147,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     }
   };
 
-  const value: WalletContextType = {
+  const value = {
     wallet,
     isLoading,
     isAuthenticated,

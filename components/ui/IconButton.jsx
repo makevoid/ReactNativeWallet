@@ -1,14 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, TouchableOpacityProps, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 
-interface IconButtonProps extends TouchableOpacityProps {
-  icon: string;
-  label?: string;
-  variant?: 'primary' | 'glass' | 'secondary';
-  size?: 'small' | 'medium' | 'large';
-}
-
-export const IconButton: React.FC<IconButtonProps> = ({
+export const IconButton = ({
   icon,
   label,
   variant = 'glass',

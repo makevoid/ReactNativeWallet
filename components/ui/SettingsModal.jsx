@@ -4,19 +4,12 @@ import { GlassCard } from './GlassCard';
 import { Button } from './Button';
 import { Title } from './Title';
 
-interface SettingsModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onExportPrivateKey: () => void;
-  onRestoreWallet: () => void;
-}
-
 export default function SettingsModal({
   visible,
   onClose,
   onExportPrivateKey,
   onRestoreWallet
-}: SettingsModalProps) {
+}) {
   return (
     <Modal
       visible={visible}

@@ -160,7 +160,6 @@ export default function HomeScreen() {
           </GlassCard>
         )}
 
-
         {error && (
           <GlassCard className="bg-red-500/20 border-red-400/30">
             <Text className="text-red-200 text-center font-medium">{error}</Text>

@@ -1,46 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, StyleSheet, ImageBackground, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { GlassCard, Button, Title } from './index';
-import { ProcessedTransaction } from '../../services/BlockchainService';
 import BlockchainService from '../../services/BlockchainService';
 import { ethers } from 'ethers';
-
-interface TransactionDetailModalProps {
-  visible: boolean;
-  transaction: ProcessedTransaction | null;
-  onClose: () => void;
-}
-
-interface FullTransactionDetails {
-  hash: string;
-  blockNumber: number;
-  blockHash: string;
-  transactionIndex: number;
-  from: string;
-  to: string;
-  value: string;
-  gasLimit: string;
-  gasUsed: string;
-  gasPrice: string;
-  effectiveGasPrice?: string;
-  nonce: number;
-  data: string;
-  type: number;
-  status: 'success' | 'failed';
-  timestamp: number;
-  confirmations: number;
-  maxFeePerGas?: string;
-  maxPriorityFeePerGas?: string;
-}
 
 export default function TransactionDetailModal({
   visible,
   transaction,
   onClose
-}: TransactionDetailModalProps) {
-  const [fullDetails, setFullDetails] = useState<FullTransactionDetails | null>(null);
+}) {
+  const [fullDetails, setFullDetails] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (visible && transaction) {
@@ -70,7 +41,7 @@ export default function TransactionDetailModal({
         throw new Error('Transaction not found');
       }
 
-      const details: FullTransactionDetails = {
+      const details = {
         hash: txResponse.hash,
         blockNumber: txReceipt.blockNumber,
         blockHash: txReceipt.blockHash,
@@ -101,15 +72,15 @@ export default function TransactionDetailModal({
     }
   };
 
-  const formatAddress = (address: string) => {
+  const formatAddress = (address) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const formatAmount = (value: string) => {
+  const formatAmount = (value) => {
     return parseFloat(value).toFixed(6);
   };
 
-  const formatGwei = (wei: string) => {
+  const formatGwei = (wei) => {
     try {
       return parseFloat(ethers.formatUnits(wei, 'gwei')).toFixed(2) + ' Gwei';
     } catch {
@@ -117,7 +88,7 @@ export default function TransactionDetailModal({
     }
   };
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleString();
   };
 
@@ -128,7 +99,7 @@ export default function TransactionDetailModal({
     }
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text) => {
     try {
       // For React Native, we'll need to use Expo's Clipboard
       const Clipboard = require('expo-clipboard');

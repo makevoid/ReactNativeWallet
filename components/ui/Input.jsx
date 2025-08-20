@@ -1,14 +1,7 @@
 import React from 'react';
-import { TextInput, TextInputProps, View, Text, StyleSheet } from 'react-native';
+import { TextInput, View, Text, StyleSheet } from 'react-native';
 
-interface InputProps extends TextInputProps {
-  label?: string;
-  error?: string;
-  variant?: 'default' | 'glass';
-  fullWidth?: boolean;
-}
-
-export const Input: React.FC<InputProps> = ({
+export const Input = ({
   label,
   error,
   variant = 'default',

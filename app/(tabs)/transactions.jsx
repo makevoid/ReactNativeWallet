@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, ImageBackground, ActivityIndicator, TouchableOpacity } from "react-native";
 import { GlassCard, Title, Button, TransactionDetailModal } from '@/components/ui';
 import { useWallet } from "@/contexts/WalletContext";
-import { ProcessedTransaction } from "@/services/BlockchainService";
 
 export default function TransactionsScreen() {
   const { 
@@ -13,7 +12,7 @@ export default function TransactionsScreen() {
     error 
   } = useWallet();
 
-  const [selectedTransaction, setSelectedTransaction] = useState<ProcessedTransaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
@@ -22,23 +21,23 @@ export default function TransactionsScreen() {
     }
   }, [wallet?.address]);
 
-  const formatAddress = (address: string) => {
+  const formatAddress = (address) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const formatAmount = (value: string) => {
+  const formatAmount = (value) => {
     return parseFloat(value).toFixed(4);
   };
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString();
   };
 
-  const getTransactionIcon = (type: 'sent' | 'received') => {
+  const getTransactionIcon = (type) => {
     return type === 'sent' ? '↗' : '↘';
   };
 
-  const handleTransactionPress = (transaction: ProcessedTransaction) => {
+  const handleTransactionPress = (transaction) => {
     setSelectedTransaction(transaction);
     setShowDetailModal(true);
   };

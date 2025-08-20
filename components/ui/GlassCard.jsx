@@ -1,12 +1,7 @@
 import React from 'react';
-import { View, ViewProps, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
-interface GlassCardProps extends ViewProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'large' | 'small';
-}
-
-export const GlassCard: React.FC<GlassCardProps> = ({ 
+export const GlassCard = ({ 
   children, 
   variant = 'default', 
   className = '',

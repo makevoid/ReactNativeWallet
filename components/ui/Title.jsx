@@ -1,13 +1,7 @@
 import React from 'react';
-import { Text, TextProps, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 
-interface TitleProps extends TextProps {
-  children: React.ReactNode;
-  level?: 1 | 2 | 3 | 4;
-  variant?: 'default' | 'glass' | 'gradient';
-}
-
-export const Title: React.FC<TitleProps> = ({ 
+export const Title = ({ 
   children, 
   level = 1, 
   variant = 'default',

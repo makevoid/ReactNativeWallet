@@ -36,22 +36,23 @@ export class StorageService extends BaseService {
     try {
       const storeOptions: SecureStore.SecureStoreOptions = {};
 
-      // For Expo Go, use simpler storage options
-      if (SecureStore.isAvailableAsync()) {
-        // Only add keychain service on device builds, not Expo Go
-        try {
-          storeOptions.keychainService = keychainService;
-        } catch (e) {
-          // Ignore keychain service errors in Expo Go
-        }
+      // For Expo Go, use minimal storage options
+      const isSecureStoreAvailable = await SecureStore.isAvailableAsync();
+      
+      if (isSecureStoreAvailable) {
+        // Skip keychain service for maximum Expo Go compatibility
+        // storeOptions.keychainService = keychainService;
 
-        // Only require authentication if biometrics are available and requested
-        if (requireAuthentication && AuthenticationService.isBiometricsAvailable()) {
+        // Only require authentication if explicitly requested and available
+        if (requireAuthentication) {
           try {
-            storeOptions.requireAuthentication = true;
-            storeOptions.authenticationPrompt = authenticationPrompt;
+            const isBiometricsAvailable = AuthenticationService.isBiometricsAvailable();
+            if (isBiometricsAvailable) {
+              storeOptions.requireAuthentication = true;
+              storeOptions.authenticationPrompt = authenticationPrompt;
+            }
           } catch (e) {
-            // Ignore authentication requirements in Expo Go
+            console.warn('Biometric authentication not supported:', e);
           }
         }
       }
@@ -81,22 +82,23 @@ export class StorageService extends BaseService {
     try {
       const storeOptions: SecureStore.SecureStoreOptions = {};
 
-      // For Expo Go, use simpler storage options
-      if (SecureStore.isAvailableAsync()) {
-        // Only add keychain service on device builds, not Expo Go
-        try {
-          storeOptions.keychainService = keychainService;
-        } catch (e) {
-          // Ignore keychain service errors in Expo Go
-        }
+      // For Expo Go, use minimal storage options
+      const isSecureStoreAvailable = await SecureStore.isAvailableAsync();
+      
+      if (isSecureStoreAvailable) {
+        // Skip keychain service for maximum Expo Go compatibility
+        // storeOptions.keychainService = keychainService;
 
-        // Only require authentication if biometrics are available and requested
-        if (requireAuthentication && AuthenticationService.isBiometricsAvailable()) {
+        // Only require authentication if explicitly requested and available
+        if (requireAuthentication) {
           try {
-            storeOptions.requireAuthentication = true;
-            storeOptions.authenticationPrompt = authenticationPrompt;
+            const isBiometricsAvailable = AuthenticationService.isBiometricsAvailable();
+            if (isBiometricsAvailable) {
+              storeOptions.requireAuthentication = true;
+              storeOptions.authenticationPrompt = authenticationPrompt;
+            }
           } catch (e) {
-            // Ignore authentication requirements in Expo Go
+            console.warn('Biometric authentication not supported:', e);
           }
         }
       }
