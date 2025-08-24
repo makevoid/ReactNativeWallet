@@ -43,8 +43,9 @@ export class StorageService extends BaseService {
         // Skip keychain service for maximum Expo Go compatibility
         // storeOptions.keychainService = keychainService;
 
-        // Only require authentication if explicitly requested and available
-        if (requireAuthentication) {
+        // Disable authentication for Expo Go to avoid Face ID permission issues
+        // Only require authentication if explicitly requested and available AND not in Expo Go
+        if (requireAuthentication && !__DEV__) {
           try {
             const isBiometricsAvailable = AuthenticationService.isBiometricsAvailable();
             if (isBiometricsAvailable) {
@@ -89,8 +90,9 @@ export class StorageService extends BaseService {
         // Skip keychain service for maximum Expo Go compatibility
         // storeOptions.keychainService = keychainService;
 
-        // Only require authentication if explicitly requested and available
-        if (requireAuthentication) {
+        // Disable authentication for Expo Go to avoid Face ID permission issues
+        // Only require authentication if explicitly requested and available AND not in Expo Go
+        if (requireAuthentication && !__DEV__) {
           try {
             const isBiometricsAvailable = AuthenticationService.isBiometricsAvailable();
             if (isBiometricsAvailable) {
